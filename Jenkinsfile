@@ -5,7 +5,7 @@ pipeline {
         GCP_PROJECT_ID = 'ascension-poc-prj'
         GKE_CLUSTER    = 'gke-autopilot-private'
         GKE_REGION     = 'us-central1'
-        GOOGLE_APPLICATION_CREDENTIALS = "${WORKSPACE}/gcp-key.json"
+        GOOGLE_APPLICATION_CREDENTIALS = "/tmp/gcp-key.json"
     }
 
     stages {
@@ -16,17 +16,17 @@ pipeline {
         }
 
         stage('Authenticate with GCP') {
-            steps {
-                withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GCP_KEY')]) {
-                    sh '''
-                        echo "Authenticating with GCP..."
-                        cp $GCP_KEY $GOOGLE_APPLICATION_CREDENTIALS
-                        gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
-                        gcloud config set project $GCP_PROJECT_ID
-                    '''
-                }
-            }
+    steps {
+        withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GCP_KEY')]) {
+            sh '''
+                echo "Authenticating with GCP..."
+                cp $GCP_KEY /tmp/gcp-key.json
+                gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS
+                gcloud config set project $GCP_PROJECT_ID
+            '''
         }
+    }
+}
 
         stage('Get GKE Credentials') {
             steps {
