@@ -15,10 +15,24 @@ pipeline {
             }
         }
 
+        stage('Install Tools') {
+            steps {
+                sh '''
+                    echo "Installing kubectl..."
+                    gcloud components install kubectl --quiet
+
+                    echo "Installing gke-gcloud-auth-plugin..."
+                    sudo apt-get update -y
+                    sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
+                '''
+            }
+        }
+
         stage('Authenticate with GCP') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GCP_KEY')]) {
                     sh '''
+                        echo "Authenticating with GCP..."
                         cp $GCP_KEY $GOOGLE_APPLICATION_CREDENTIALS
                         gcloud auth activate-service-account --key-file="$GOOGLE_APPLICATION_CREDENTIALS"
                         gcloud config set project $GCP_PROJECT_ID
@@ -30,6 +44,7 @@ pipeline {
         stage('Get GKE Credentials') {
             steps {
                 sh '''
+                    echo "Fetching GKE cluster credentials..."
                     gcloud container clusters get-credentials $GKE_CLUSTER \
                         --region $GKE_REGION \
                         --project $GCP_PROJECT_ID
@@ -40,6 +55,7 @@ pipeline {
         stage('Deploy to GKE') {
             steps {
                 sh '''
+                    echo "Applying Kubernetes manifests..."
                     kubectl apply -f configmap.yaml
                     kubectl apply -f deployment.yaml
                     kubectl apply -f service.yaml
@@ -50,6 +66,7 @@ pipeline {
         stage('Verify Deployment') {
             steps {
                 sh 'kubectl get pods'
+                sh 'kubectl get services'
             }
         }
     }
