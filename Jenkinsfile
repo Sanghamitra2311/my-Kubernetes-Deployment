@@ -15,19 +15,6 @@ pipeline {
             }
         }
 
-        stage('Install Tools') {
-            steps {
-                sh '''
-                    echo "Installing kubectl..."
-                    gcloud components install kubectl --quiet
-
-                    echo "Installing gke-gcloud-auth-plugin..."
-                    sudo apt-get update -y
-                    sudo apt-get install -y google-cloud-sdk-gke-gcloud-auth-plugin
-                '''
-            }
-        }
-
         stage('Authenticate with GCP') {
             steps {
                 withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GCP_KEY')]) {
